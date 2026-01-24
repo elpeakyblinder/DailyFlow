@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { Pool } from "@neondatabase/serverless";
 
@@ -9,13 +9,13 @@ export async function loginAction(email: string, password: string): Promise<{ su
         await signIn("credentials", {
             email,
             password,
-            redirect: false, 
+            redirect: false,
         });
 
         const pool = new Pool({ connectionString: process.env.DATABASE_URL });
         const result = await pool.query("SELECT role FROM users WHERE email = $1", [email]);
-        const userRole = result.rows[0]?.role || 'employee'; 
-        
+        const userRole = result.rows[0]?.role || 'employee';
+
         return { success: true, role: userRole };
 
     } catch (error) {
@@ -29,4 +29,8 @@ export async function loginAction(email: string, password: string): Promise<{ su
         }
         throw error;
     }
+}
+
+export async function logoutAction() {
+    await signOut({ redirect: false });
 }
