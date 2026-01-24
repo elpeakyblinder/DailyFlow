@@ -46,7 +46,7 @@ export default async function EmployeeDashboard() {
 
     return (
         <main className="min-h-screen w-full bg-background text-foreground flex justify-center p-4 md:p-8">
-            <div className="w-full max-w-2xl space-y-8">
+            <div className="w-full max-w-4xl space-y-8">
                 <HeaderDashboard
                     displayName={displayName}
                     displayJob={displayJob}
@@ -79,7 +79,7 @@ export default async function EmployeeDashboard() {
                                 <Link
                                     key={report.id}
                                     href={`/employee/dashboard/report/${report.id}`}
-                                    className="group flex items-start sm:items-center gap-4 p-4 rounded-xl border border-border bg-card hover:bg-secondary/40 transition-colors cursor-pointer"
+                                    className="group flex items-start sm:items-center gap-4 p-4 rounded-xl border border-border bg-card hover:bg-secondary/40 transition-colors cursor-pointer min-w-0"
                                 >
                                     <div className="h-10 w-10 shrink-0 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors mt-1 sm:mt-0">
                                         <FileText size={20} />
