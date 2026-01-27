@@ -1,20 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { pool } from "@/lib/db";
-
-export interface ReportImage {
-    id: string;
-    image_url: string;
-    caption: string | null;
-}
-
-export interface DailyReport {
-    id: string;
-    title: string;
-    content: string;
-    created_at: Date;
-    mood: 'success' | 'neutral' | 'blocked';
-    images: ReportImage[];
-}
+import type { DailyReport, UserRole } from "@/types";
 
 export async function getUserProfile(userId: string) {
     const query = `
@@ -69,5 +55,53 @@ export async function getUserReports(userId: string): Promise<DailyReport[]> {
     } catch (error) {
         console.error("Database Error:", error);
         throw new Error("Error al obtener los reportes.");
+    }
+}
+
+export async function getReportById(
+    reportId: string,
+    userId: string,
+    role: UserRole
+): Promise<DailyReport | null> {
+    noStore();
+
+    const query = `
+            SELECT 
+                r.id,
+                r.title,
+                r.content,
+                r.created_at,
+                r.mood,
+                COALESCE(
+                    JSON_AGG(
+                        DISTINCT JSONB_BUILD_OBJECT(
+                            'id', i.id,
+                            'image_url', i.image_url
+                        )
+                    ) FILTER (WHERE i.id IS NOT NULL),
+                    '[]'
+                ) AS images
+            FROM daily_reports r
+            LEFT JOIN report_images i ON r.id = i.report_id
+            WHERE r.id = $1
+            AND (
+                    r.user_id = $2
+                    OR $3 = 'admin'
+            )
+            GROUP BY r.id
+            LIMIT 1;
+        `;
+
+    try {
+        const { rows } = await pool.query<DailyReport>(query, [
+            reportId,
+            userId,
+            role,
+        ]);
+
+        return rows[0] ?? null;
+    } catch (error) {
+        console.error("Database Error:", error);
+        throw new Error("Error al obtener el reporte.");
     }
 }
