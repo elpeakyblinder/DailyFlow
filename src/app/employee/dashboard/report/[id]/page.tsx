@@ -2,11 +2,11 @@ import React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-
 import { auth } from "@/auth";
 import { getReportById } from "@/lib/data";
 import { ReportForm } from "@/app/components/ReportForm";
 import { isUserRole } from "@/types";
+import { formatDateMX, formatTimeMX } from "@/utils/date";
 
 export default async function ReportDetailPage({
     params,
@@ -62,13 +62,9 @@ export default async function ReportDetailPage({
 
                 <div className="text-center text-xs text-muted-foreground pt-4">
                     Reporte creado el{" "}
-                    {new Date(report.created_at).toLocaleDateString("es-MX", {
-                        dateStyle: "long",
-                    })}{" "}
+                    {formatDateMX(report.created_at)}{" "}
                     a las{" "}
-                    {new Date(report.created_at).toLocaleTimeString("es-MX", {
-                        timeStyle: "short",
-                    })}
+                    {formatTimeMX(report.created_at)}
                 </div>
             </div>
         </main>
