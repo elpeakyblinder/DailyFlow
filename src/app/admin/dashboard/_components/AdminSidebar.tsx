@@ -1,23 +1,39 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
     Briefcase,
     Layers,
     Plus,
     Settings,
 } from "lucide-react";
-import { getAdminTeams } from "@/lib/admin";
-import { getUserProfile } from "@/lib/data";
 import AdminLogoutButton from "./AdminLogoutButton";
+
+interface Team {
+    id: string;
+    name: string;
+    members: number;
+}
+
+interface Profile {
+    full_name?: string;
+    job_title?: string;
+}
 
 interface Props {
     adminId: string;
+    teams: Team[];
+    profile: Profile | null;
 }
 
-export default async function AdminSidebar({ adminId }: Props) {
-    const [profile, teams] = await Promise.all([
-        getUserProfile(adminId),
-        getAdminTeams(adminId),
-    ]);
+export default function AdminSidebar({
+    adminId,
+    teams,
+    profile,
+}: Props) {
+    const searchParams = useSearchParams();
+    const activeTeamId = searchParams.get("team");
 
     return (
         <aside className="w-64 border-r border-border bg-card/30 hidden md:flex flex-col">
@@ -44,21 +60,29 @@ export default async function AdminSidebar({ adminId }: Props) {
                     Equipos
                 </p>
 
-                {teams.map(team => (
-                    <Link
-                        key={team.id}
-                        href={`/admin/dashboard?team=${team.id}`}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Layers size={16} />
-                            {team.name}
-                        </div>
-                        <span className="text-xs bg-background/50 px-1.5 py-0.5 rounded-md border border-border/50">
-                            {team.members}
-                        </span>
-                    </Link>
-                ))}
+                {teams.map(team => {
+                    const isActive = team.id === activeTeamId;
+
+                    return (
+                        <Link
+                            key={team.id}
+                            href={`/admin/dashboard?team=${team.id}`}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all
+                                ${isActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Layers size={16} />
+                                {team.name}
+                            </div>
+                            <span className="text-xs bg-background/50 px-1.5 py-0.5 rounded-md border border-border/50">
+                                {team.members}
+                            </span>
+                        </Link>
+                    );
+                })}
 
                 <Link
                     href="/admin/teams/new"
