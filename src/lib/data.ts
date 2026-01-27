@@ -105,3 +105,35 @@ export async function getReportById(
         throw new Error("Error al obtener el reporte.");
     }
 }
+
+export async function getReportsByUserId(
+    userId: string
+): Promise<DailyReport[]> {
+    noStore();
+
+    const query = `
+        SELECT 
+            r.id,
+            r.title,
+            r.content,
+            r.created_at,
+            r.mood,
+            COALESCE(
+                JSON_AGG(
+                    DISTINCT JSONB_BUILD_OBJECT(
+                        'id', i.id,
+                        'image_url', i.image_url
+                    )
+                ) FILTER (WHERE i.id IS NOT NULL),
+                '[]'
+            ) AS images
+        FROM daily_reports r
+        LEFT JOIN report_images i ON r.id = i.report_id
+        WHERE r.user_id = $1
+        GROUP BY r.id
+        ORDER BY r.created_at DESC;
+    `;
+
+    const { rows } = await pool.query<DailyReport>(query, [userId]);
+    return rows;
+}

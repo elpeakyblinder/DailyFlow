@@ -83,7 +83,7 @@ export default function AdminDashboard({ selectedTeamId, employees }: Props) {
                             return (
                                 <Link
                                     key={employee.id}
-                                    href={`/admin/employees/${employee.id}`}
+                                    href={`/admin/employees/${employee.id}?team=${selectedTeamId}`}
                                     className="group relative bg-card border border-border rounded-xl p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 min-w-0"
                                 >
                                     <div className="flex justify-between items-start mb-3">
