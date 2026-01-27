@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -13,9 +13,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "DailyFlow",
-  description: "Tu herramienta para reportes diarios",
+  title: {
+    template: "%s | DailyFlow", 
+    default: "DailyFlow",       
+  },
+  description: "Plataforma de gestión de reportes diarios y seguimiento de actividades para tu empresa.",
+  
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+
+  robots: {
+    index: false,
+    follow: false,
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    url: "", 
+    title: "DailyFlow Dashboard",
+    description: "Gestión eficiente de reportes operativos.",
+    siteName: "DailyFlow",
+  },
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "DailyFlow",
+  },
 };
 
 export default function RootLayout({
