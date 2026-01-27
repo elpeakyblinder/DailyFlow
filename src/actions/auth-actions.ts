@@ -2,9 +2,8 @@
 
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
-import { Pool } from "@neondatabase/serverless";
 
-export async function loginAction(email: string, password: string): Promise<{ success: boolean; role?: string; error?: string }> {
+export async function loginAction(email: string, password: string) {
     try {
         await signIn("credentials", {
             email,
@@ -12,22 +11,15 @@ export async function loginAction(email: string, password: string): Promise<{ su
             redirect: false,
         });
 
-        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-        const result = await pool.query("SELECT role FROM users WHERE email = $1", [email]);
-        const userRole = result.rows[0]?.role || 'employee';
-
-        return { success: true, role: userRole };
-
+        return { success: true };
     } catch (error) {
         if (error instanceof AuthError) {
-            switch (error.type) {
-                case "CredentialsSignin":
-                    return { success: false, error: "Credenciales incorrectas." };
-                default:
-                    return { success: false, error: "Error en el servidor." };
+            if (error.type === "CredentialsSignin") {
+                throw new Error("Credenciales incorrectas");
             }
         }
-        throw error;
+
+        throw new Error("Error al iniciar sesión");
     }
 }
 
