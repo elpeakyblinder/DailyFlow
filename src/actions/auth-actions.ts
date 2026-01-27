@@ -11,15 +11,21 @@ export async function loginAction(email: string, password: string) {
             redirect: false,
         });
 
-        return { success: true };
+        return { ok: true };
     } catch (error) {
         if (error instanceof AuthError) {
             if (error.type === "CredentialsSignin") {
-                throw new Error("Credenciales incorrectas");
+                return {
+                    ok: false,
+                    message: "Credenciales incorrectas",
+                };
             }
         }
 
-        throw new Error("Error al iniciar sesión");
+        return {
+            ok: false,
+            message: "Error al iniciar sesión",
+        };
     }
 }
 

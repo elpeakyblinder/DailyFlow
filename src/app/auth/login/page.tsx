@@ -18,18 +18,17 @@ export default function LoginPage() {
         const email = formData.get('email') as string;
         const password = formData.get('password') as string;
 
-        try {
-            await loginAction(email, password);
+        const result = await loginAction(email, password);
 
-            toast.success("¡Bienvenido!");
-            router.replace("/employee/dashboard");
-            router.refresh();
-        } catch (error) {
-            toast.error(
-                error instanceof Error ? error.message : "Error inesperado"
-            );
+        if (!result.ok) {
+            toast.error(result.message);
             setIsLoading(false);
+            return;
         }
+
+        toast.success("¡Bienvenido!");
+        router.replace("/employee/dashboard");
+        router.refresh();
     };
 
     return (
