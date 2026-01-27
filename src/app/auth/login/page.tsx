@@ -18,37 +18,18 @@ export default function LoginPage() {
         const email = formData.get('email') as string;
         const password = formData.get('password') as string;
 
-        const loginPromise = new Promise(async (resolve, reject) => {
-            try {
-                const result = await loginAction(email, password);
+        try {
+            await loginAction(email, password);
 
-                if (result?.error) {
-                    reject(result.error);
-                } else {
-                    resolve("¡Bienvenido!");
-                    
-                    setTimeout(() => {
-                        if (result.role === 'admin') {
-                            router.push("/admin/dashboard");
-                        } else {
-                            router.push("/employee/dashboard");
-                        }
-                        router.refresh(); 
-                    }, 500);
-                }
-            } catch (err) {
-                reject("Ocurrió un error inesperado.");
-            }
-        });
-
-        toast.promise(loginPromise, {
-            loading: 'Verificando credenciales...',
-            success: (msg) => `${msg}`,
-            error: (err) => {
-                setIsLoading(false);
-                return `${err}`;
-            },
-        });
+            toast.success("¡Bienvenido!");
+            router.replace("/employee/dashboard");
+            router.refresh();
+        } catch (error) {
+            toast.error(
+                error instanceof Error ? error.message : "Error inesperado"
+            );
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -63,43 +44,41 @@ export default function LoginPage() {
                         Accede a DailyFlow
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        ¡Ingresa tus credenciales para crear tus reportes!
+                        Ingresa tus credenciales para continuar
                     </p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-6">
 
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground ml-1 uppercase tracking-wider">
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Correo Electrónico
                             </label>
-                            <div className="relative">
+                            <div className="relative mt-1">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                                 <input
                                     name="email"
                                     type="email"
                                     required
-                                    placeholder="ejemplo@empresa.com"
-                                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all placeholder:text-muted-foreground/50 text-foreground"
+                                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 focus:ring-2 focus:ring-primary/20 outline-none"
+                                    placeholder='correo@ejemplo.com'
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-medium text-muted-foreground ml-1 uppercase tracking-wider">
-                                    Contraseña
-                                </label>
-                            </div>
-                            <div className="relative">
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                Contraseña
+                            </label>
+                            <div className="relative mt-1">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                                 <input
                                     name="password"
                                     type="password"
                                     required
-                                    placeholder="••••••••"
-                                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all placeholder:text-muted-foreground/50 text-foreground"
+                                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 focus:ring-2 focus:ring-primary/20 outline-none"
+                                    placeholder='••••••••'
                                 />
                             </div>
                         </div>
@@ -108,25 +87,21 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="group w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_20px_-5px_var(--color-primary)]"
+                        className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground"
                     >
                         {isLoading ? (
                             <>
                                 <Loader2 size={18} className="animate-spin" />
-                                <span>Entrando...</span>
+                                Entrando...
                             </>
                         ) : (
                             <>
-                                <span>Iniciar Sesión</span>
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                Iniciar Sesión
+                                <ArrowRight size={18} />
                             </>
                         )}
                     </button>
                 </form>
-
-                <p className="text-center text-xs text-muted-foreground">
-                    ¿Olvidaste tu contraseña? <span className="text-primary cursor-pointer hover:underline">Contacta a soporte</span>
-                </p>
             </div>
         </div>
     );
