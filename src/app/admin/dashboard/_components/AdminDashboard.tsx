@@ -1,126 +1,127 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
     Users,
-    Search,
     Briefcase,
+    ChevronDown,
     ChevronRight,
+    FileDown,
 } from "lucide-react";
+
 
 interface Employee {
     id: string;
     name: string;
     role: string;
-    teamId: string;
-    lastReportAt: Date | null;
+    lastReportAt: string | null;
 }
 
-interface Props {
-    selectedTeamId: string;
+interface AreaGroup {
+    areaId: string;
+    areaName: string;
     employees: Employee[];
 }
 
-export default function AdminDashboard({ selectedTeamId, employees }: Props) {
-    const [searchQuery, setSearchQuery] = useState("");
+interface Props {
+    areas?: AreaGroup[];
+}
 
-    const filteredEmployees = useMemo(() => {
-        return employees.filter(emp => {
-            const matchesTeam = emp.teamId === selectedTeamId;
-            const matchesSearch =
-                emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                emp.role.toLowerCase().includes(searchQuery.toLowerCase());
-
-            return matchesTeam && matchesSearch;
-        });
-    }, [employees, searchQuery, selectedTeamId]);
+export default function AdminDashboard({ areas = [] }: Props) {
+    if (areas.length === 0) {
+        return (
+            <main className="flex-1 p-6 text-muted-foreground">
+                No hay áreas registradas.
+            </main>
+        );
+    }
 
     return (
-        <main className="flex-1 flex flex-col min-w-0">
-
-            <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                    Empleados del equipo
-                    <span className="text-xs font-normal text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                        {filteredEmployees.length}
-                    </span>
-                </h2>
-
-                <div className="relative w-64 hidden sm:block">
-                    <Search
-                        size={14}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Buscar empleado..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-9 pl-9 pr-4 rounded-md bg-secondary/50 border border-transparent focus:border-primary/50 focus:bg-background focus:ring-1 focus:ring-primary/20 text-sm outline-none transition-all placeholder:text-muted-foreground"
-                    />
-                </div>
-            </header>
-
-            <div className="p-6 overflow-y-auto">
-                {filteredEmployees.length === 0 ? (
-                    <div className="text-center py-20 text-muted-foreground">
-                        <div className="bg-secondary/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Users size={24} opacity={0.5} />
-                        </div>
-                        <p>No hay empleados en este equipo.</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {filteredEmployees.map(employee => {
-                            const lastReportLabel = employee.lastReportAt
-                                ? new Date(employee.lastReportAt).toLocaleString("es-MX", {
-                                    dateStyle: "medium",
-                                    timeStyle: "short",
-                                })
-                                : "Sin reportes";
-
-                            return (
-                                <Link
-                                    key={employee.id}
-                                    href={`/admin/employees/${employee.id}?team=${selectedTeamId}`}
-                                    className="group relative bg-card border border-border rounded-xl p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 min-w-0"
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="h-10 w-10 rounded-lg flex items-center justify-center font-bold text-sm bg-primary/10 text-primary">
-                                            {getInitials(employee.name)}
-                                        </div>
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <h3 className="font-medium text-foreground truncate">
-                                            {employee.name}
-                                        </h3>
-                                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1 truncate">
-                                            <Briefcase size={12} />
-                                            {employee.role}
-                                        </p>
-                                    </div>
-
-                                    <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground uppercase tracking-wide font-medium">
-                                        <span>Último reporte</span>
-                                        <span className="text-foreground">
-                                            {lastReportLabel}
-                                        </span>
-                                    </div>
-
-                                    <ChevronRight
-                                        size={16}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all"
-                                    />
-                                </Link>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+        <main className="flex-1 p-6 space-y-6 overflow-y-auto">
+            {areas.map(area => (
+                <AreaCard key={area.areaId} area={area} />
+            ))}
         </main>
+    );
+}
+
+function AreaCard({ area }: { area: AreaGroup }) {
+    const [isOpen, setIsOpen] = useState(true);
+
+    return (
+        <div className="border border-border rounded-2xl bg-card shadow-sm">
+            <div
+                className="flex items-center justify-between p-5 cursor-pointer"
+                onClick={() => setIsOpen(prev => !prev)}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <Users size={22} />
+                    </div>
+
+                    <div>
+                        <h2 className="text-lg font-semibold">
+                            {area.areaName}
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                            {area.employees.length} empleados
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    {/* PDF SEMANAL */}
+                    <a
+                        href={`/api/reports/export-weekly?area=${area.areaId}&week=current`}
+                        onClick={e => e.stopPropagation()}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                        <FileDown size={16} />
+                        PDF semana actual
+                    </a>
+
+                    {isOpen ? <ChevronDown /> : <ChevronRight />}
+                </div>
+            </div>
+
+            {isOpen && (
+                <div className="border-t border-border divide-y divide-border">
+                    {area.employees.map(emp => (
+                        <Link
+                            key={emp.id}
+                            href={`/admin/employees/${emp.id}?area=${area.areaId}`}
+                            className="flex items-center justify-between p-4 hover:bg-secondary/40 transition-colors"
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                                    {getInitials(emp.name)}
+                                </div>
+
+                                <div className="min-w-0">
+                                    <p className="font-medium truncate">
+                                        {emp.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <Briefcase size={12} />
+                                        {emp.role}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <span className="text-xs text-muted-foreground shrink-0">
+                                {emp.lastReportAt
+                                    ? new Date(emp.lastReportAt).toLocaleString("es-MX", {
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                    })
+                                    : "Sin reportes"}
+                            </span>
+                        </Link>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }
 
