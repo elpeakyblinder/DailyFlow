@@ -1,27 +1,51 @@
-import { getTeamEmployees } from "@/lib/admin";
 import AdminDashboard from "./_components/AdminDashboard";
+import { getEmployeesWithArea } from "@/lib/admin";
 
-export default async function AdminDashboardPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ team?: string }>;
-}) {
-    const { team } = await searchParams;
+interface RawEmployee {
+    user_id: string;
+    full_name: string;
+    job_title: string;
+    area_id: string | null;
+    area_name: string | null;
+    last_report_at: Date | null;
+}
 
-    if (!team) {
-        return (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-                Selecciona un equipo
-            </div>
-        );
-    }
+export default async function AdminDashboardPage() {
+    const rows = await getEmployeesWithArea();
 
-    const employees = await getTeamEmployees(team);
+    const areaMap = new Map<string, {
+        areaId: string;
+        areaName: string;
+        employees: {
+            id: string;
+            name: string;
+            role: string;
+            lastReportAt: string | null;
+        }[];
+    }>();
 
-    return (
-        <AdminDashboard
-            selectedTeamId={team}
-            employees={employees}
-        />
-    );
+    rows.forEach((row: RawEmployee) => {
+        if (!row.area_id || !row.area_name) return;
+
+        if (!areaMap.has(row.area_id)) {
+            areaMap.set(row.area_id, {
+                areaId: row.area_id,
+                areaName: row.area_name,
+                employees: [],
+            });
+        }
+
+        areaMap.get(row.area_id)!.employees.push({
+            id: row.user_id,
+            name: row.full_name,
+            role: row.job_title,
+            lastReportAt: row.last_report_at
+                ? row.last_report_at.toISOString()
+                : null,
+        });
+    });
+
+    const areas = Array.from(areaMap.values());
+
+    return <AdminDashboard areas={areas} />;
 }
