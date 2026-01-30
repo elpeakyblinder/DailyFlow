@@ -75,8 +75,8 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
         const files = Array.from(e.target.files ?? []);
         if (!files.length) return;
 
-        if (imageFiles.length + files.length > 5) {
-            toast.error("Máximo 5 imágenes por reporte");
+        if (imageFiles.length + files.length > 3) {
+            toast.error("Máximo 3 imágenes por reporte");
             return;
         }
 
