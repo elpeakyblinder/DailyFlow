@@ -2,28 +2,45 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { pool } from "@/lib/db";
 import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min"; 
 import { renderWeeklyAreaReport } from "@/lib/pdf/renderWeeklyAreaReport";
 
-export const runtime = "nodejs";
+interface ChromiumPack {
+    args: string[];
+    defaultViewport: {
+        width: number;
+        height: number;
+        deviceScaleFactor?: number;
+        isMobile?: boolean;
+        hasTouch?: boolean;
+        isLandscape?: boolean;
+    };
+    executablePath: (path?: string) => Promise<string>;
+    headless: boolean | "new" | "shell";
+}
+
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 async function getBrowser() {
     if (process.env.NODE_ENV === "production") {
+        const chromiumPack = chromium as unknown as ChromiumPack;
+
+        const remoteExecutablePath = "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+
         return await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
+            args: [...chromiumPack.args, "--hide-scrollbars", "--disable-web-security"],
+            defaultViewport: chromiumPack.defaultViewport,
+            executablePath: await chromiumPack.executablePath(remoteExecutablePath),
+            headless: chromiumPack.headless === "new" ? true : chromiumPack.headless,
+        });
+    } else {
+        const puppeteerLocal = await import("puppeteer");
+        return await puppeteerLocal.default.launch({
+            args: ["--no-sandbox"],
+            headless: true,
         });
     }
-
-    const puppeteerLocal = await import("puppeteer");
-    return await puppeteerLocal.default.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
 }
 
 function getWorkWeekRange(date = new Date()) {
@@ -124,8 +141,8 @@ export async function GET(req: Request) {
 
         const browser = await getBrowser();
         const page = await browser.newPage();
-
-        await page.setContent(html, { waitUntil: "load" });
+        
+        await page.setContent(html, { waitUntil: "networkidle0" });
 
         const pdf = await page.pdf({
             format: "A4",
@@ -143,7 +160,9 @@ export async function GET(req: Request) {
         const areaName = rows[0].area_name;
         const fileName = `reporte-semanal-${slugify(areaName)}-${formatDateForFilename(monday)}_a_${formatDateForFilename(friday)}.pdf`;
 
-        return new NextResponse(Buffer.from(pdf), {
+        const pdfBuffer = Buffer.from(pdf);
+
+        return new NextResponse(pdfBuffer as unknown as BodyInit, {
             headers: {
                 "Content-Type": "application/pdf",
                 "Content-Disposition": `attachment; filename="${fileName}"`,
@@ -151,7 +170,7 @@ export async function GET(req: Request) {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Error PDF:", error);
         return NextResponse.json(
             { error: `Error al generar PDF semanal: ${error}` },
             { status: 500 }
