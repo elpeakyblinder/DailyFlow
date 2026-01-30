@@ -169,15 +169,17 @@ export function WeeklyAreaReportPdf({
                                         Estado: {moodLabel(report.mood)}
                                     </Text>
 
-                                    {report.images?.slice(0, 2).map(
-                                        (url, index) => (
-                                            // eslint-disable-next-line jsx-a11y/alt-text
-                                            <Image
-                                                key={index}
-                                                src={url}
-                                                style={styles.image}
-                                            />
-                                        )
+                                    {report.images.length > 0 && (
+                                        <View style={{ marginTop: 6 }}>
+                                            {report.images.map((src, index) => (
+                                                // eslint-disable-next-line jsx-a11y/alt-text
+                                                <Image
+                                                    key={index}
+                                                    src={src}
+                                                    style={styles.image}
+                                                />
+                                            ))}
+                                        </View>
                                     )}
                                 </View>
                             ))}

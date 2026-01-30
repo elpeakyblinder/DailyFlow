@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { pool } from "@/lib/db";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { WeeklyAreaReportPdf } from "@/lib/pdf/renderWeeklyAreaReport";
+import { imageUrlToBase64 } from "@/lib/pdf/imageToBase64";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,6 +99,24 @@ export async function GET(req: Request) {
                 { error: "No hay reportes en esta semana laboral" },
                 { status: 404 }
             );
+        }
+
+        for (const row of rows) {
+            if (!Array.isArray(row.images)) {
+                row.images = [];
+                continue;
+            }
+
+            const base64Images: string[] = [];
+
+            for (const url of row.images.slice(0, 2)) {
+                if (!url || !url.startsWith("https://")) continue;
+
+                const base64 = await imageUrlToBase64(url);
+                if (base64) base64Images.push(base64);
+            }
+
+            row.images = base64Images;
         }
 
         const pdfBuffer = await renderToBuffer(
