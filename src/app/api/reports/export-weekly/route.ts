@@ -5,43 +5,25 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { renderWeeklyAreaReport } from "@/lib/pdf/renderWeeklyAreaReport";
 
-// Definimos la interfaz compatible con v123
-interface ChromiumPack {
-    args: string[];
-    defaultViewport: {
-        width: number;
-        height: number;
-        deviceScaleFactor?: number;
-        isMobile?: boolean;
-        hasTouch?: boolean;
-        isLandscape?: boolean;
-    };
-    executablePath: (path?: string) => Promise<string>;
-    headless: boolean | "new" | "shell"; 
-}
-
+export const runtime = "nodejs";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 async function getBrowser() {
     if (process.env.NODE_ENV === "production") {
-        const chromiumPack = chromium as unknown as ChromiumPack;
-
-        // NOTA: Para v123 y puppeteer v22, el modo "new" es compatible,
-        // pero por seguridad lo convertimos a true si es necesario.
         return await puppeteer.launch({
-            args: [...chromiumPack.args, "--hide-scrollbars", "--disable-web-security"],
-            defaultViewport: chromiumPack.defaultViewport,
-            executablePath: await chromiumPack.executablePath(),
-            headless: chromiumPack.headless === "new" ? true : chromiumPack.headless,
-        });
-    } else {
-        const puppeteerLocal = await import("puppeteer");
-        return await puppeteerLocal.default.launch({
-            args: ["--no-sandbox"],
-            headless: true,
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
         });
     }
+
+    const puppeteerLocal = await import("puppeteer");
+    return await puppeteerLocal.default.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
 }
 
 function getWorkWeekRange(date = new Date()) {
@@ -142,8 +124,8 @@ export async function GET(req: Request) {
 
         const browser = await getBrowser();
         const page = await browser.newPage();
-        
-        await page.setContent(html, { waitUntil: "networkidle0" });
+
+        await page.setContent(html, { waitUntil: "load" });
 
         const pdf = await page.pdf({
             format: "A4",
@@ -161,9 +143,7 @@ export async function GET(req: Request) {
         const areaName = rows[0].area_name;
         const fileName = `reporte-semanal-${slugify(areaName)}-${formatDateForFilename(monday)}_a_${formatDateForFilename(friday)}.pdf`;
 
-        const pdfBuffer = Buffer.from(pdf);
-
-        return new NextResponse(pdfBuffer as unknown as BodyInit, {
+        return new NextResponse(Buffer.from(pdf), {
             headers: {
                 "Content-Type": "application/pdf",
                 "Content-Disposition": `attachment; filename="${fileName}"`,
@@ -171,7 +151,7 @@ export async function GET(req: Request) {
         });
 
     } catch (error) {
-        console.error("Error PDF:", error);
+        console.error(error);
         return NextResponse.json(
             { error: `Error al generar PDF semanal: ${error}` },
             { status: 500 }
