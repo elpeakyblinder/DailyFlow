@@ -21,13 +21,14 @@ export default async function AdminLayout({
     ]);
 
     return (
-        <div className="min-h-screen w-full bg-background text-foreground flex">
+        <div className="flex h-dvh bg-background text-foreground">
             <AdminSidebar
                 adminId={session.user.id}
                 profile={profile}
                 teams={teams}
             />
-            <main className="flex-1 min-w-0">
+
+            <main className="flex-1 min-w-0 overflow-y-auto">
                 {children}
             </main>
         </div>
