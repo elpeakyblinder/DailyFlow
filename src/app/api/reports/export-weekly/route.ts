@@ -50,6 +50,8 @@ function slugify(text: string): string {
 }
 
 export async function GET(req: Request) {
+    const browser = await getBrowser();
+
     try {
         const session = await auth();
 
@@ -120,9 +122,7 @@ export async function GET(req: Request) {
             weekEnd: friday,
         });
 
-        const browser = await getBrowser();
         const page = await browser.newPage();
-
         await page.setContent(html, { waitUntil: "load" });
 
         const pdf = await page.pdf({
@@ -135,8 +135,6 @@ export async function GET(req: Request) {
                 right: "20mm",
             },
         });
-
-        await browser.close();
 
         const areaName = rows[0].area_name;
         const fileName = `reporte-semanal-${slugify(areaName)}-${formatDateForFilename(monday)}_a_${formatDateForFilename(friday)}.pdf`;
@@ -154,5 +152,7 @@ export async function GET(req: Request) {
             { error: `Error al generar PDF semanal: ${error}` },
             { status: 500 }
         );
+    } finally {
+        await browser.close();
     }
 }
