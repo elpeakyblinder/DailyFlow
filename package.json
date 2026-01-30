@@ -10,13 +10,15 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@sparticuz/chromium": "^143.0.4",
     "@vercel/blob": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
     "lucide-react": "^0.562.0",
     "next": "16.1.4",
     "next-auth": "5.0.0-beta.30",
-    "playwright": "^1.58.0",
+    "puppeteer": "^24.36.1",
+    "puppeteer-core": "^24.36.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sonner": "^2.0.7"
