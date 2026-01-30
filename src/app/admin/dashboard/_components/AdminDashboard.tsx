@@ -113,7 +113,7 @@ function AreaCard({ area }: { area: AreaGroup }) {
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                         <FileDown size={16} />
-                        PDF semana actual
+                        Descargar PDF semana actual
                     </a>
 
                     <ChevronDown
@@ -178,6 +178,9 @@ function EmployeeRow({
 
             <div className="flex items-center gap-3 shrink-0">
                 <span className="text-xs text-muted-foreground hidden sm:block">
+                    <span className="mr-1 uppercase tracking-widest font-sm">
+                        Ultimo reporte:
+                    </span>
                     {employee.lastReportAt
                         ? new Date(employee.lastReportAt).toLocaleString("es-MX", {
                             dateStyle: "medium",
