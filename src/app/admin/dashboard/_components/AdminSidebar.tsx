@@ -28,7 +28,6 @@ interface Props {
 }
 
 export default function AdminSidebar({
-    adminId,
     teams,
     profile,
 }: Props) {
