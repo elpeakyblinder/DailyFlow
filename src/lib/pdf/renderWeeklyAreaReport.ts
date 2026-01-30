@@ -82,7 +82,7 @@ export function renderWeeklyAreaReport({
     <title>Reporte semanal - ${areaName}</title>
     <style>
         body {
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 40px;
             color: #111;
         }
@@ -144,20 +144,6 @@ export function renderWeeklyAreaReport({
             white-space: pre-wrap;
         }
 
-        .report-images {
-            margin-top: 12px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .report-images img {
-            width: 100%;
-            border-radius: 8px;
-            object-fit: contain;
-            border: 1px solid #e5e7eb;
-        }
-
         .mood {
             display: inline-block;
             margin-top: 10px;
@@ -193,10 +179,10 @@ export function renderWeeklyAreaReport({
     </div>
 
     ${Array.from(groupedByEmployee.entries())
-            .map(([employeeName, employeeReports]) => {
-                const role = employeeReports[0].employee_role ?? "Sin puesto";
+        .map(([employeeName, employeeReports]) => {
+            const role = employeeReports[0].employee_role ?? "Sin puesto";
 
-                return `
+            return `
         <section class="employee">
             <div class="employee-header">
                 <div class="employee-name">${employeeName}</div>
@@ -204,8 +190,8 @@ export function renderWeeklyAreaReport({
             </div>
 
             ${employeeReports
-                        .map(
-                            report => `
+                .map(
+                    report => `
             <div class="report">
                 <div class="report-title">
                     ${report.title || "Reporte diario"}
@@ -222,23 +208,14 @@ export function renderWeeklyAreaReport({
                 <span class="mood ${getMoodClass(report.mood)}">
                     ${getMoodLabel(report.mood)}
                 </span>
-
-                ${report.images.length > 0
-                                    ? `
-                <div class="report-images">
-                    ${report.images.map(url => `<img src="${url}" />`).join("")}
-                </div>
-                `
-                                    : ""
-                                }
             </div>
             `
-                        )
-                        .join("")}
+                )
+                .join("")}
         </section>
         `;
-            })
-            .join("")}
+        })
+        .join("")}
 
 </body>
 </html>
