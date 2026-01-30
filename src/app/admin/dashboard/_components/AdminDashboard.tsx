@@ -142,6 +142,9 @@ function AreaCard({ area }: { area: AreaGroup }) {
                             </div>
 
                             <span className="text-xs text-muted-foreground shrink-0">
+                                <span className="text-xs text-muted-foreground shrink-0 mr-2 uppercase">
+                                    Ultimo reporte:
+                                </span>
                                 {emp.lastReportAt
                                     ? new Date(emp.lastReportAt).toLocaleString("es-MX", {
                                         dateStyle: "medium",
