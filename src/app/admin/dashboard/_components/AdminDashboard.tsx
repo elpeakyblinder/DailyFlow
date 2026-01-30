@@ -8,8 +8,10 @@ import {
     ChevronDown,
     ChevronRight,
     FileDown,
+    Code2,
+    CircuitBoard,
+    Scale,
 } from "lucide-react";
-
 
 interface Employee {
     id: string;
@@ -27,6 +29,36 @@ interface AreaGroup {
 interface Props {
     areas?: AreaGroup[];
 }
+
+const getAreaStyle = (name: string) => {
+    const lower = name.toLowerCase();
+
+    if (lower.includes("web") || lower.includes("desarrollo")) {
+        return {
+            icon: <Code2 size={22} />,
+            css: "bg-blue-500/10 text-blue-500"
+        };
+    }
+
+    if (lower.includes("n8n")) {
+        return {
+            icon: <CircuitBoard size={22} />,
+            css: "bg-orange-500/10 text-orange-500"
+        };
+    }
+
+    if (lower.includes("licitaci") || lower.includes("legal")) {
+        return {
+            icon: <Scale size={22} />,
+            css: "bg-purple-500/10 text-purple-500"
+        };
+    }
+
+    return {
+        icon: <Users size={22} />,
+        css: "bg-primary/10 text-primary"
+    };
+};
 
 export default function AdminDashboard({ areas = [] }: Props) {
     if (areas.length === 0) {
@@ -48,6 +80,7 @@ export default function AdminDashboard({ areas = [] }: Props) {
 
 function AreaCard({ area }: { area: AreaGroup }) {
     const [isOpen, setIsOpen] = useState(true);
+    const style = getAreaStyle(area.areaName);
 
     return (
         <div className="border border-border rounded-2xl bg-card shadow-sm">
@@ -56,8 +89,8 @@ function AreaCard({ area }: { area: AreaGroup }) {
                 onClick={() => setIsOpen(prev => !prev)}
             >
                 <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                        <Users size={22} />
+                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${style.css}`}>
+                        {style.icon}
                     </div>
 
                     <div>
@@ -71,14 +104,13 @@ function AreaCard({ area }: { area: AreaGroup }) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* PDF SEMANAL */}
                     <a
                         href={`/api/reports/export-weekly?area=${area.areaId}&week=current`}
                         onClick={e => e.stopPropagation()}
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                         <FileDown size={16} />
-                        PDF semana actual
+                        Descargar PDF semana actual
                     </a>
 
                     {isOpen ? <ChevronDown /> : <ChevronRight />}
