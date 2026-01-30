@@ -27,7 +27,13 @@ export default function LoginPage() {
         }
 
         toast.success("¡Bienvenido!");
-        router.replace("/employee/dashboard");
+
+        if (result.role === "admin") {
+            router.replace("/admin/dashboard");
+        } else {
+            router.replace("/employee/dashboard");
+        }
+
         router.refresh();
     };
 
@@ -55,13 +61,16 @@ export default function LoginPage() {
                                 Correo Electrónico
                             </label>
                             <div className="relative mt-1">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                                <Mail
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                                    size={18}
+                                />
                                 <input
                                     name="email"
                                     type="email"
                                     required
                                     className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 focus:ring-2 focus:ring-primary/20 outline-none"
-                                    placeholder='correo@ejemplo.com'
+                                    placeholder="correo@ejemplo.com"
                                 />
                             </div>
                         </div>
@@ -71,13 +80,16 @@ export default function LoginPage() {
                                 Contraseña
                             </label>
                             <div className="relative mt-1">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                                <Lock
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                                    size={18}
+                                />
                                 <input
                                     name="password"
                                     type="password"
                                     required
                                     className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 focus:ring-2 focus:ring-primary/20 outline-none"
-                                    placeholder='••••••••'
+                                    placeholder="••••••••"
                                 />
                             </div>
                         </div>
