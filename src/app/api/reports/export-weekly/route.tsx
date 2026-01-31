@@ -24,6 +24,12 @@ function getWorkWeekRange(date = new Date()) {
     return { monday, friday };
 }
 
+function toUtc(date: Date) {
+    return new Date(
+        date.toLocaleString("en-US", { timeZone: "UTC" })
+    );
+}
+
 function formatDateForFilename(date: Date) {
     return date.toISOString().slice(0, 10);
 }
@@ -42,7 +48,10 @@ export async function GET(req: Request) {
         const session = await auth();
 
         if (!session?.user?.id || session.user.role !== "admin") {
-            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+            return NextResponse.json(
+                { error: "No autorizado" },
+                { status: 401 }
+            );
         }
 
         const { searchParams } = new URL(req.url);
@@ -57,13 +66,16 @@ export async function GET(req: Request) {
 
         const { monday, friday } = getWorkWeekRange();
 
+        const mondayUtc = toUtc(monday);
+        const fridayUtc = toUtc(friday);
+
         const query = `
             SELECT
                 r.id AS report_id,
                 r.title,
                 r.content,
                 r.mood,
-                r.created_at,
+                r.created_at AT TIME ZONE 'America/Mexico_City' AS created_at,
                 p.full_name AS employee_name,
                 p.job_title AS employee_role,
                 a.name AS area_name,
@@ -85,13 +97,15 @@ export async function GET(req: Request) {
                 p.full_name,
                 p.job_title,
                 a.name
-            ORDER BY p.full_name, r.created_at ASC;
+            ORDER BY
+                p.full_name,
+                r.created_at ASC;
         `;
 
         const { rows } = await pool.query(query, [
             areaId,
-            monday,
-            friday,
+            mondayUtc,
+            fridayUtc,
         ]);
 
         if (rows.length === 0) {
@@ -144,7 +158,7 @@ export async function GET(req: Request) {
     } catch (error) {
         console.error(error);
         return NextResponse.json(
-            { error: `Error al generar PDF semanal: ${error}` },
+            { error: "Error al generar PDF semanal" },
             { status: 500 }
         );
     }
