@@ -24,12 +24,6 @@ function getWorkWeekRange(date = new Date()) {
     return { monday, friday };
 }
 
-function toUtc(date: Date) {
-    return new Date(
-        date.toLocaleString("en-US", { timeZone: "UTC" })
-    );
-}
-
 function formatDateForFilename(date: Date) {
     return date.toISOString().slice(0, 10);
 }
@@ -66,9 +60,6 @@ export async function GET(req: Request) {
 
         const { monday, friday } = getWorkWeekRange();
 
-        const mondayUtc = toUtc(monday);
-        const fridayUtc = toUtc(friday);
-
         const query = `
             SELECT
                 r.id AS report_id,
@@ -90,8 +81,8 @@ export async function GET(req: Request) {
             JOIN areas a ON a.id = u.area_id
             LEFT JOIN report_images ri ON ri.report_id = r.id
             WHERE a.id = $1
-            AND r.created_at >= $2
-            AND r.created_at <= $3
+            AND (r.created_at AT TIME ZONE 'America/Mexico_City') >= $2
+            AND (r.created_at AT TIME ZONE 'America/Mexico_City') <= $3
             GROUP BY
                 r.id,
                 p.full_name,
@@ -104,8 +95,8 @@ export async function GET(req: Request) {
 
         const { rows } = await pool.query(query, [
             areaId,
-            mondayUtc,
-            fridayUtc,
+            monday,
+            friday,
         ]);
 
         if (rows.length === 0) {
@@ -123,7 +114,7 @@ export async function GET(req: Request) {
 
             const base64Images: string[] = [];
 
-            for (const url of row.images.slice(0, 2)) {
+            for (const url of row.images.slice(0, 3)) {
                 if (!url || !url.startsWith("https://")) continue;
 
                 const base64 = await imageUrlToBase64(url);
