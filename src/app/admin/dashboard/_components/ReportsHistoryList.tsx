@@ -39,6 +39,7 @@ export function ReportsHistoryList({
         new Date(date).toLocaleTimeString("es-MX", {
             hour: "numeric",
             minute: "2-digit",
+            hour12: true,
         });
 
     return (
@@ -60,7 +61,10 @@ export function ReportsHistoryList({
                                     <h3 className="font-semibold truncate text-sm sm:text-base">
                                         {report.title || "Reporte sin título"}
                                     </h3>
-                                    <span className="text-xs text-muted-foreground shrink-0">
+                                    <span 
+                                        className="text-xs text-muted-foreground shrink-0"
+                                        suppressHydrationWarning
+                                    >
                                         {formatDate(report.created_at)}
                                     </span>
                                 </div>
@@ -71,7 +75,9 @@ export function ReportsHistoryList({
 
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
                                     <Clock size={12} />
-                                    {formatTime(report.created_at)}
+                                    <span suppressHydrationWarning>
+                                        {formatTime(report.created_at)}
+                                    </span>
                                 </div>
                             </div>
 

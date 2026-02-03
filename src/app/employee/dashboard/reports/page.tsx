@@ -29,7 +29,7 @@ export default async function EmployeeDashboard() {
     const displayJob = userData?.job_title || "Sin cargo definido";
 
     const formatDate = (dateString: Date) => {
-        return new Date(dateString).toLocaleDateString("es-ES", {
+        return new Date(dateString).toLocaleDateString("es-MX", {
             month: "long",
             day: "numeric",
             year: "numeric",
@@ -37,7 +37,7 @@ export default async function EmployeeDashboard() {
     };
 
     const formatTime = (dateString: Date) => {
-        return new Date(dateString).toLocaleTimeString("es-ES", {
+        return new Date(dateString).toLocaleTimeString("es-MX", {
             hour: "numeric",
             minute: "2-digit",
             hour12: true,
@@ -89,7 +89,10 @@ export default async function EmployeeDashboard() {
                                             <h3 className="font-semibold text-foreground truncate text-sm sm:text-base">
                                                 {report.title || "Reporte sin título"}
                                             </h3>
-                                            <span className="text-xs text-muted-foreground capitalize shrink-0">
+                                            <span 
+                                                className="text-xs text-muted-foreground capitalize shrink-0"
+                                                suppressHydrationWarning
+                                            >
                                                 {formatDate(report.created_at)}
                                             </span>
                                         </div>
@@ -98,7 +101,9 @@ export default async function EmployeeDashboard() {
                                         </p>
                                         <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
                                             <Clock size={12} />
-                                            {formatTime(report.created_at)}
+                                            <span suppressHydrationWarning>
+                                                {formatTime(report.created_at)}
+                                            </span>
                                         </div>
                                     </div>
                                     <ChevronRight
