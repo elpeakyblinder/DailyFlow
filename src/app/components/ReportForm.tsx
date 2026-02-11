@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -10,7 +10,8 @@ import {
     Image as ImageIcon,
     X,
     Loader2,
-    Send
+    Send,
+    UploadCloud
 } from "lucide-react";
 import Image from "next/image";
 import { upload } from "@vercel/blob/client";
@@ -57,6 +58,7 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         if (!activeImage) return;
@@ -67,15 +69,10 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
         return () => window.removeEventListener("keydown", handler);
     }, [activeImage]);
 
-    const handleTriggerUpload = () => {
-        fileInputRef.current?.click();
-    };
+    const processFiles = useCallback(async (incomingFiles: File[]) => {
+        if (!incomingFiles.length) return;
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files ?? []);
-        if (!files.length) return;
-
-        if (imageFiles.length + files.length > 3) {
+        if (imageFiles.length + incomingFiles.length > 3) {
             toast.error("Máximo 3 imágenes por reporte");
             return;
         }
@@ -83,8 +80,16 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
         setIsCompressing(true);
 
         try {
+            const validImages = incomingFiles.filter(file => file.type.startsWith("image/"));
+
+            if (validImages.length !== incomingFiles.length) {
+                toast.warning("Algunos archivos no eran imágenes y se ignoraron");
+            }
+
+            if (validImages.length === 0) return;
+
             const compressedFiles = await Promise.all(
-                files.map(file => compressImageToWebp(file))
+                validImages.map(file => compressImageToWebp(file))
             );
 
             const previews = compressedFiles.map(file =>
@@ -99,8 +104,66 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
             toast.error("Error al procesar las imágenes");
         } finally {
             setIsCompressing(false);
-            e.target.value = "";
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
+    }, [imageFiles]);
+
+    useEffect(() => {
+        if (readOnly) return;
+
+        const handlePaste = (e: ClipboardEvent) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            const filesToProcess: File[] = [];
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") !== -1) {
+                    const blob = items[i].getAsFile();
+                    if (blob) filesToProcess.push(blob);
+                }
+            }
+
+            if (filesToProcess.length > 0) {
+                e.preventDefault();
+                processFiles(filesToProcess);
+            }
+        };
+
+        window.addEventListener("paste", handlePaste);
+        return () => window.removeEventListener("paste", handlePaste);
+    }, [processFiles, readOnly]);
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!readOnly) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (readOnly) return;
+
+        const files = Array.from(e.dataTransfer.files);
+        await processFiles(files);
+    };
+
+    const handleTriggerUpload = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        await processFiles(files);
     };
 
     const handleRemoveImage = (index: number) => {
@@ -119,8 +182,8 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
             const uploadedUrls: string[] = [];
 
             for (const image of imageFiles) {
-                if (image.size > 500_000) {
-                    throw new Error("Una imagen supera el tamaño permitido");
+                if (image.size > 4_500_000) {
+                    throw new Error(`La imagen ${image.name} es demasiado pesada`);
                 }
 
                 const result = await upload(image.name, image, {
@@ -237,21 +300,35 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             disabled={isSubmitting}
-                            className="w-full h-40 p-4 rounded-lg bg-secondary/30 resize-none"
+                            placeholder="Describe lo que hiciste hoy..."
+                            className="w-full h-40 p-4 rounded-lg bg-secondary/30 resize-none outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                         />
                     )}
                 </div>
 
-                <div className="mb-8">
-                    <div className="flex justify-between mb-3">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <div
+                    className={`mb-8 rounded-xl transition-all duration-200 ${isDragging
+                        ? "bg-primary/5 border-2 border-dashed border-primary p-4"
+                        : "border border-transparent"
+                        }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
+                    <div className="flex justify-between mb-3 items-center">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                             Evidencia / Capturas
+                            {!readOnly && (
+                                <span className="text-[10px] normal-case bg-secondary px-2 py-0.5 rounded text-muted-foreground/70 hidden sm:inline-block">
+                                    Pega (Ctrl+V) o arrastra imágenes aquí
+                                </span>
+                            )}
                         </label>
                         {!readOnly && (
                             <button
                                 onClick={handleTriggerUpload}
                                 disabled={isSubmitting || isCompressing}
-                                className="text-xs flex items-center gap-1 text-primary"
+                                className="text-xs flex items-center gap-1 text-primary hover:underline"
                             >
                                 <ImageIcon size={14} />
                                 Adjuntar
@@ -259,19 +336,35 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {isDragging && (
+                        <div className="absolute inset-0 z-10 bg-background/80 flex flex-col items-center justify-center rounded-xl pointer-events-none">
+                            <UploadCloud className="w-10 h-10 text-primary mb-2 animate-bounce" />
+                            <p className="text-sm font-medium text-primary">Suelta las imágenes aquí</p>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 min-h-25 content-start">
+                        {imagePreviews.length === 0 && !readOnly && !isDragging && (
+                            <div
+                                onClick={handleTriggerUpload}
+                                className="col-span-2 sm:col-span-4 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center h-24 text-muted-foreground hover:bg-secondary/20 cursor-pointer transition-colors"
+                            >
+                                <span className="text-sm">Sin capturas</span>
+                                <span className="text-xs opacity-50">Ctrl+V para pegar</span>
+                            </div>
+                        )}
+
                         {imagePreviews.map((img, idx) => (
-                            <button
+                            <div
                                 key={idx}
-                                type="button"
                                 onClick={() => setActiveImage(img)}
-                                className="relative aspect-video rounded-lg overflow-hidden border"
+                                className="relative aspect-video rounded-lg overflow-hidden border bg-black/5 group cursor-pointer"
                             >
                                 <Image
                                     src={img}
                                     alt="Imagen del reporte"
                                     fill
-                                    className="object-cover"
+                                    className="object-cover transition-transform group-hover:scale-105"
                                 />
                                 {!readOnly && (
                                     <button
@@ -280,12 +373,12 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                                             e.stopPropagation();
                                             handleRemoveImage(idx);
                                         }}
-                                        className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full"
+                                        className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                                     >
                                         <X size={12} />
                                     </button>
                                 )}
-                            </button>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -295,7 +388,7 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting || isCompressing}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isCompressing || isSubmitting ? (
                                 <Loader2 className="animate-spin" size={18} />
@@ -303,7 +396,7 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                                 <Send size={18} />
                             )}
                             {isCompressing
-                                ? "Optimizando imágenes..."
+                                ? "Optimizando..."
                                 : isSubmitting
                                     ? "Enviando..."
                                     : "Enviar Reporte"}
@@ -311,9 +404,10 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                     </div>
                 )}
             </div>
+
             {activeImage && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
                     onClick={() => setActiveImage(null)}
                 >
                     <div
@@ -321,17 +415,17 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
-                            className="absolute top-3 right-3 z-10 bg-black/60 text-white rounded-full p-1"
+                            className="absolute -top-10 right-0 z-10 text-white/80 hover:text-white"
                             onClick={() => setActiveImage(null)}
                         >
-                            <X size={24} />
+                            <X size={32} />
                         </button>
                         <Image
                             src={activeImage}
                             alt="Imagen del reporte"
                             width={1600}
                             height={900}
-                            className="object-contain w-full h-full rounded-lg"
+                            className="object-contain w-full h-full rounded-lg shadow-2xl"
                         />
                     </div>
                 </div>
@@ -358,8 +452,8 @@ function MoodButton({
         <button
             onClick={() => !readOnly && onClick(value)}
             disabled={readOnly}
-            className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border
-                ${isSelected ? `${bg} ${border} ${color}` : "bg-secondary/30 text-muted-foreground"}`}
+            className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all
+                ${isSelected ? `${bg} ${border} ${color}` : "bg-secondary/30 text-muted-foreground hover:bg-secondary/50"}`}
         >
             {icon}
             <span className="text-xs font-medium">{label}</span>
