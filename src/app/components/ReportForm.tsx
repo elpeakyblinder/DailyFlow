@@ -186,7 +186,9 @@ export function ReportForm({ readOnly = false, initialData }: ReportFormProps) {
                     throw new Error(`La imagen ${image.name} es demasiado pesada`);
                 }
 
-                const result = await upload(image.name, image, {
+                const uniqueName = `${Date.now()}-${image.name}`;
+
+                const result = await upload(uniqueName, image, {
                     access: "public",
                     handleUploadUrl: "/api/upload-images-FormReport",
                 });
