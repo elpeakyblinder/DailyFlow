@@ -156,4 +156,4 @@ Al contribuir al repositorio **DailyFlow**, aceptas que todo código y documenta
 
 ---
 
-¡Gracias por ser parte de DailyFlow! Construido con ❤️ por [Guijosa Dev](https://github.com/elpeakyblinder).
+¡Gracias por ser parte de DailyFlow! Construido con ❤️ por [Guijosa Dev](https://github.com/elpeakyblinder) ([devcharlying@gmail.com](mailto:devcharlying@gmail.com)).

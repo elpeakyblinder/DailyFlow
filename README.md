@@ -281,20 +281,21 @@ Este proyecto está bajo una **Licencia de Código Fuente No Comercial (Source-A
 Si representas a una empresa, startup o deseas desplegar DailyFlow con fines comerciales u operativos privados, es necesario solicitar una **Licencia Comercial Oficial**:
 
 * **Autor:** Guijosa Dev
-* **Contacto:** **devcharlying** *(GitHub: [@elpeakyblinder](https://github.com/elpeakyblinder) / contacto devcharlying)*
-* **Asunto del mensaje:**  
+* **Correo de contacto:** [devcharlying@gmail.com](mailto:devcharlying@gmail.com?subject=Dailyflow%20comercializar)
+* **GitHub:** [@elpeakyblinder](https://github.com/elpeakyblinder)
+* **Asunto requerido en el correo:**  
   `Dailyflow comercializar`  
-  o alternativamente:  
-  `[DailyFlow] Solicitud de Licencia Comercial - <Tu Empresa / Nombre>`
+  *(o formal: `[DailyFlow] Solicitud de Licencia Comercial - <Tu Empresa / Nombre>`)*
 
 ---
 
 ## 👤 Autor y Contacto
 
-Desarrollado y mantenido con dedicación por **Guijosa Dev** (`devcharlying`).
+Desarrollado y mantenido por **Guijosa Dev** (`devcharlying`).
 
-* GitHub: [@elpeakyblinder](https://github.com/elpeakyblinder)
-* Proyecto: [https://github.com/elpeakyblinder/DailyFlow](https://github.com/elpeakyblinder/DailyFlow)
+* 📧 **Correo Electrónico:** [devcharlying@gmail.com](mailto:devcharlying@gmail.com)
+* 🐙 **GitHub:** [@elpeakyblinder](https://github.com/elpeakyblinder)
+* 🌐 **Repositorio Oficial:** [https://github.com/elpeakyblinder/DailyFlow](https://github.com/elpeakyblinder/DailyFlow)
 
 ---
 
