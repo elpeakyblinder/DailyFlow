@@ -44,7 +44,7 @@ Este Código de Conducta se aplica a todos los espacios del proyecto (repositori
 
 ## Aplicación y Reportes
 
-Los casos de comportamiento abusivo, acosador o inaceptable pueden ser reportados a los líderes del proyecto contactando a **Guijosa Dev** a través de **devcharlying**. Todas las quejas serán revisadas e investigadas de manera justa y confidencial.
+Los casos de comportamiento abusivo, acosador o inaceptable pueden ser reportados a los líderes del proyecto contactando a **Guijosa Dev** a través del correo electrónico **[devcharlying@gmail.com](mailto:devcharlying@gmail.com)**. Todas las quejas serán revisadas e investigadas de manera justa, confidencial y expedita.
 
 El equipo del proyecto se compromete a respetar la privacidad y la seguridad de quienes denuncien cualquier incidente.
 
